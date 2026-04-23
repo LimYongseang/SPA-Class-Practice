@@ -100,10 +100,20 @@ function App() {
     <div style={{ padding: '2rem', maxWidth: '500px', margin: '0 auto' }}>
       <h1>SPA Practice</h1>
       
+      {isLoggedIn && (
+        <p style={{ fontSize: '14px', fontWeight: 'bold' }}>Logged in as: {username}</p>
+      )}
+
       {/* Show if CSRF is loaded for debugging */}
       <p style={{ fontSize: '12px', color: 'gray' }}>
         CSRF Token Status: {csrfToken ? 'Loaded ✓' : 'Loading...'}
       </p>
+
+      {!isLoggedIn && (
+        <div style={{ fontSize: '12px', color: 'gray', marginBottom: '1rem' }}>
+          <p>Test accounts: <strong>alice / 1234</strong> &nbsp;|&nbsp; <strong>bob / abcd</strong></p>
+        </div>
+      )}
 
       {!isLoggedIn ? (
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
