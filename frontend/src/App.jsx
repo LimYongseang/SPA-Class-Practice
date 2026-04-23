@@ -12,7 +12,8 @@ function App() {
 
   // State for Contacts
   const [contactName, setContactName] = useState('');
-  const [contactMessage, setContactMessage] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contacts, setContacts] = useState([]);
 
   // TASK 1: useEffect -> fetch /api/csrf-token, store in state
   useEffect(() => {
@@ -56,7 +57,8 @@ function App() {
 
       if (response.ok) {
         setIsLoggedIn(true);
-        alert('Login successful!');
+        const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
+        if (contactsRes.ok) setContacts(await contactsRes.json());
       } else {
         alert('Login failed. Check credentials.');
       }
@@ -76,13 +78,14 @@ function App() {
           'x-csrf-token': csrfToken // Supplying the token grabbed from useEffect
         },
         credentials: 'include', // Crucial for proving the user is logged in
-        body: JSON.stringify({ name: contactName, message: contactMessage }),
+        body: JSON.stringify({ name: contactName, phone: contactPhone }),
       });
 
       if (response.ok) {
-        alert('Contact added successfully!');
+        const data = await response.json();
+        setContacts((prev) => [...prev, data.contact]);
         setContactName('');
-        setContactMessage('');
+        setContactPhone('');
       } else if (response.status === 403) {
         alert('CSRF validation failed! (403)');
       } else if (response.status === 401) {
@@ -131,14 +134,25 @@ function App() {
             onChange={(e) => setContactName(e.target.value)} 
             required 
           />
-          <textarea 
-            placeholder="Message" 
-            value={contactMessage} 
-            onChange={(e) => setContactMessage(e.target.value)} 
-            required 
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            value={contactPhone}
+            onChange={(e) => setContactPhone(e.target.value)}
+            required
           />
           <button type="submit">Submit Contact</button>
         </form>
+      )}
+
+      {contacts.length > 0 && (
+        <ul style={{ marginTop: '2rem', padding: 0, listStyle: 'none' }}>
+          {contacts.map((c) => (
+            <li key={c.id} style={{ padding: '0.5rem 0', borderBottom: '1px solid #eee' }}>
+              <strong>{c.name}</strong> — {c.phone}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

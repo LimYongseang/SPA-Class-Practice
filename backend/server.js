@@ -25,7 +25,7 @@ app.use(
 );
 
 // CSRF — NOT applied globally, used per-route instead
-const csrfProtection = csrf({ cookie: false });
+const csrfProtection = csrf({ cookie: true });
 
 // In-memory data
 const contacts = [];
@@ -59,6 +59,14 @@ app.get("/api/csrf-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
+// GET /api/contacts — protected by session
+app.get("/api/contacts", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Unauthorized — please log in first" });
+  }
+  res.json(contacts.filter(c => c.username === req.session.user.username));
+});
+
 // POST /api/contacts — protected by both session AND CSRF
 app.post("/api/contacts", csrfProtection, (req, res) => {
   // Guard 1: must be logged in
@@ -74,7 +82,7 @@ app.post("/api/contacts", csrfProtection, (req, res) => {
     return res.status(400).json({ error: "Name and phone are required" });
   }
 
-  const newContact = { id: contacts.length + 1, name, phone };
+  const newContact = { id: contacts.length + 1, username: req.session.user.username, name, phone };
   contacts.push(newContact);
 
   res.status(201).json({ message: "Contact added", contact: newContact });
